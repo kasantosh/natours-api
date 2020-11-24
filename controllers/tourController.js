@@ -1,103 +1,160 @@
-const fs = require('fs');
+const Tour = require('./../models/tourModel');
+const AppError = require('./../utils/appError');
+const catchAsync = require('./../utils/catchAsync');
+const factory = require('./handlerFactory');
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-);
+// TOP 5 TOURS
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = 5;
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
 
-// GET ALL TOURS FUNCTION
-exports.getAllTours = (req, res) => {
-  console.log(req.requestTime);
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews'} )
+exports.createTour = factory.createOne(Tour);
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
+
+exports.getTourStats = catchAsync(async (req, res, next) => {
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        $group: {
+          _id: { $toUpper: '$difficulty' },
+          numTours: { $sum: 1 },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+      // {
+      //   $match: { _id: { $ne: 'easy' } },
+      // },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+});
+
+exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
+    const year = req.params.year * 1;
+
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates',
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: { month: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+      {
+        $sort: {
+          numTourStarts: -1,
+        },
+      },
+      // {
+      //   $limit: 6,
+      // },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        plan,
+      },
+    });
+});
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+  // above is standard form to get radius in radians
+
+  if (!lat || !lng) {
+    next(new AppError('Please provide latitude and longitude in the format lat, lng', 400));
+  }
+  // console.log(distance, lat, lng, unit);
+  const tours = await Tour.find({
+      startLocation: { $geoWithin: { $centerSphere: [ [lng, lat], radius ] } }
+  });
+
   res.status(200).json({
     status: 'success',
-    reqestedAt: req.requestTime,
     results: tours.length,
     data: {
-      tours: tours,
-    },
+      data: tours
+    }
   });
-};
+});
 
-// GET TOUR FUNCTION
-exports.getTour = (req, res) => {
-  const id = req.params.id * 1; // Converts the numberlike string to number
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  const [lat, lng] = latlng.split(',');
+  // above is standard form to get radius in radians
 
-  if (id > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(new AppError('Please provide latitude and longitude in the format lat, lng', 400));
   }
-
-  const tour = tours.find((el) => el.id === id);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-};
-
-// CREATE TOUR FUNCTION
-exports.createTour = (req, res) => {
-  // console.log(req.body);
-
-  const newId = tours[tours.length - 1].id + 1;
-  const newTour = Object.assign({ id: newId }, req.body);
-
-  tours.push(newTour);
-
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
+  
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1]
         },
-      });
+        distanceField: 'distance',
+        distanceMultiplier: multiplier
+      }
+    },
+    {
+      $project: {
+        distance: 1,
+        name: 1
+      }
     }
-  );
-};
+  ]);
 
-// UPDATE TOUR FUNCTION
-exports.updateTour = (req, res) => {
-  const id = req.params.id * 1; // Converts the numberlike string to number
-  const tour = tours.find((el) => el.id === id);
-
-  if (req.params.id > tours.length) {
-    if (!tour) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Invalid ID',
-      });
-    }
-  }
   res.status(200).json({
     status: 'success',
     data: {
-      tour: '<Updated tour here...>',
-    },
-  });
-};
-
-// DELETE TOUR FUNCTION
-exports.deleteTour = (req, res) => {
-  const id = req.params.id * 1; // Converts the numberlike string to number
-  const tour = tours.find((el) => el.id === id);
-
-  if (req.params.id > tours.length) {
-    if (!tour) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Invalid ID',
-      });
+      data: distances
     }
-  }
-
-  res.status(204).json({
-    status: 'success',
-    message: null,
   });
-};
+});
