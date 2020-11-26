@@ -4,6 +4,7 @@ html
         block head
             meta(charset='UTF-8')
             meta(name='viewport' content='width=device-width, initial-scale=1.0')
+            meta(http-equiv='Content-Security-Policy' content=`default-src * 'unsafe-inline' 'unsafe-eval' 'self'; script-src * 'unsafe-inline' 'unsafe-eval' blob:; img-src * 'self' data: blob:;`)
             link(rel='stylesheet' href='/css/style.css' content='self localhost:*')
             link(rel='shortcut icon' type='image/png' href='/img/favicon.png')
             link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
@@ -20,6 +21,5 @@ html
         // FOOTER
         include _footer
     
-        script(src='/js/mapbox.js')
 
     
