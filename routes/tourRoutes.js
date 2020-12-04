@@ -5,12 +5,6 @@ const reviewRouter = require('./../routes/reviewRoutes');
 
 const router = express.Router();
 
-// router.param('id', tourController.checkID);
-
-    // POST /tour/5aedcsjksd12339a/reviews
-  // GET /tour/5aedcsjksd12339a/reviews
-  // GET /tour/5aedcsjksd12339a/reviews/5436a7vuiol65167
-
 router.use('/:tourId/reviews', reviewRouter);
 
 
@@ -34,7 +28,7 @@ router
 router
   .route('/:id')
   .get(tourController.getTour)
-  .patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.updateTour)
+  .patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.uploadTourImages, tourController.resizeTourImages, tourController.updateTour)
   .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour);
 
 module.exports = router;
