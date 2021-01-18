@@ -29,7 +29,7 @@ export const login = async (email, password) => {
                method: 'GET',
                url: 'http://127.0.0.1:3000/api/v1/users/logout',
            });
-           if (res.data.status = 'success') location.reload(true);  
+           if (res.data.status = 'success') windows.location.reload(true);  
        } catch (err) {
         showAlert('error', 'Error, logging out. Try Again!');
        }
