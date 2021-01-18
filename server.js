@@ -26,7 +26,7 @@ process.on('unhandledRejection', err => {
 });
 
 
-const DB = process.env.DATABASE_URI.replace(
+const DB = 'mongodb+srv://kasantosh:<PASSWORD>@cluster0.reqlo.mongodb.net/natours?retryWrites=true&w=majority'.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
 );
