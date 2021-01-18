@@ -1,4 +1,5 @@
 ## Natours - An app where a user can browse and buy Tours.
+	**bold text**
 This is a full stack app using Node/Express with additional libraries. 
 Uses MongoDB for database
 PUG is used for the front end presentation
