@@ -26,7 +26,7 @@ process.on('unhandledRejection', err => {
 });
 
 
-const DB = process.env.DATABASE.replace(
+const DB = process.env.DATABASE_URI.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD
 );
