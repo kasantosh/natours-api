@@ -27,6 +27,7 @@
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-mongo-sanitize": "^2.0.0",
@@ -60,11 +61,11 @@
     "prettier": "^2.0.5"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": "^12"
   },
   "headers": {
     "/**": {
-      "Content-Security-Policy": "default-src 'self'; script-src https://s*.mapbox.com https://www.google-analytics.com https://*.stripe.com; img-src 'self' https://s3.amazonaws.com https://twitter.com https://pbs.twimg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' https://fonts.googleapis.com; frame-ancestors 'none';"
+      "Content-Security-Policy": "default-src 'self'; script-src https://*.mapbox.com https://www.google-analytics.com https://*.stripe.com; img-src 'self' https://s3.amazonaws.com https://twitter.com https://pbs.twimg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' https://fonts.googleapis.com; frame-ancestors 'none';"
     }
   }
 }
