@@ -61,5 +61,10 @@
   },
   "engines": {
     "node": ">=10.0.0"
+  },
+  "headers": {
+    "/**": {
+      "Content-Security-Policy": "default-src 'self'; script-src https://s*.mapbox.com https://www.google-analytics.com https://*.stripe.com; img-src 'self' https://s3.amazonaws.com https://twitter.com https://pbs.twimg.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' https://fonts.googleapis.com; frame-ancestors 'none';"
+    }
   }
 }
