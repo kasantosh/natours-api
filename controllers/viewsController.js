@@ -4,6 +4,8 @@ const Booking = require('./../models/bookingModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 
+const csp = "default-src 'self' https://js.stripe.com/v3/ https://cdnjs.cloudflare.com https://api.mapbox.com; base-uri 'self'; block-all-mixed-content; connect-src 'self' https://js.stripe.com/v3/ https://cdnjs.cloudflare.com/ https://*.mapbox.com/; font-src 'self' https://fonts.google.com/ https: data:;frame-ancestors 'self'; img-src 'self' data:; object-src 'none'; script-src 'self' https://js.stripe.com/v3/ https://cdnjs.cloudflare.com/ https://api.mapbox.com/ blob:; script-src-attr 'none'; style-src 'self' https: 'unsafe-inline'; upgrade-insecure-requests;";
+
 exports.getOverview = catchAsync(async (req, res, next) => {
 
   // 1) Get tour data from collection
@@ -13,7 +15,7 @@ exports.getOverview = catchAsync(async (req, res, next) => {
 
   // 3) Render the template using tour data from 1)
 
-    res.status(200).render('overview', {
+    res.status(200).set('Content-Security-Policy', csp).render('overview', {
       title: 'All Tours',
       tours
     });
@@ -30,27 +32,20 @@ exports.getOverview = catchAsync(async (req, res, next) => {
     }
 
     // Render template using data
-    res.status(200).set('Content-Security-Policy', "default-src 'self' https://*.mapbox.com; base-uri 'self'; block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:; object-src 'none'; script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    ).render('tour', {
+    res.status(200).set('Content-Security-Policy', csp).render('tour', {
       title: tour.name,
       tour
     });
   });
 
   exports.getLoginForm = (req, res) => {
-    res.status(200).set(
-      'Content-Security-Policy',
-      "script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js 'unsafe-inline' 'unsafe-eval';"
-    ).render('login', {
+    res.status(200).set('Content-Security-Policy', csp).render('login', {
       title: 'Log into your account'
     });
   };
 
   exports.getAccount = (req, res) => {
-    res.status(200).set(
-      'Content-Security-Policy',
-      "script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js 'unsafe-inline' 'unsafe-eval';"
-    ).render('account', {
+    res.status(200).set('Content-Security-Policy', csp).render('account', {
       title: 'Your profile'
     });
   };
@@ -63,10 +58,7 @@ exports.getOverview = catchAsync(async (req, res, next) => {
     const tourIDs = bookings.map(el => el.tour);
     const tours = await Tour.find({ _id: { $in: tourIDs }});
 
-    res.status(200).set(
-      'Content-Security-Policy',
-      "script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js 'unsafe-inline' 'unsafe-eval';"
-    ).render('overview', {
+    res.status(200).set('Content-Security-Policy', csp).render('overview', {
       title: 'My Tours',
       tours
     });
@@ -81,10 +73,7 @@ exports.getOverview = catchAsync(async (req, res, next) => {
         runValidators: true
       });
 
-      res.status(200).set(
-        'Content-Security-Policy',
-        "script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js 'unsafe-inline' 'unsafe-eval';"
-      ).render('account', {
+      res.status(200).set('Content-Security-Policy', csp).render('account', {
         title: 'Your profile',
         user: updatedUser
       });
